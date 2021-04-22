@@ -20,15 +20,6 @@ public class WeatherAPI {
                 @Query("lang") String lang,
                 @Query("appid") String appid
         );
-
-        @GET("forecast")
-        Call<WeatherForecast> getForecast(
-                @Query("lat") Double lat,
-                @Query("lon") Double lon,
-                @Query("units") String units,
-                @Query("lang") String lang,
-                @Query("appid") String appid
-        );
     }
 
     public static Retrofit getClient() {
