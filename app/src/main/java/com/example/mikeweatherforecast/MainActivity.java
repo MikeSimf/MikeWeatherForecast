@@ -20,15 +20,10 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
-import com.bumptech.glide.request.target.Target;
 
-import java.util.concurrent.ExecutionException;
+import javax.inject.Inject;
 
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
-import rx.Observable;
-import rx.Observer;
+import retrofit2.Retrofit;
 import rx.SingleSubscriber;
 
 public class MainActivity extends AppCompatActivity implements LocationListener {
@@ -38,6 +33,9 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
     };
 
     private static Criteria searchProviderCriteria = new Criteria();
+
+    @Inject
+    Retrofit retrofit;
 
     // Location Criteria
     static {
@@ -54,23 +52,21 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
     LocationManager locationManager;
     Location location;
 
+
     @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        tvTemp = findViewById(R.id.tvTemp);
-        tvDesc = findViewById(R.id.tvDesc);
-        tvSunrise = findViewById(R.id.tvSunrise);
-        tvSunset = findViewById(R.id.tvSunset);
-        tvHumidity = findViewById(R.id.tvHumidity);
-        tvWindSpeed = findViewById(R.id.tvWindSpeed);
-        tvFeelTemp = findViewById(R.id.tvFeelTemp);
-        tvImage = findViewById(R.id.ivImage);
+        initView();
+        initLocationManager();
 
-        api = WeatherAPI.getClient().create(WeatherAPI.ApiInterface.class);
+        api = DaggerApiComponent.create().getRetrofit().create(WeatherAPI.ApiInterface.class);
+    }
 
+    @RequiresApi(api = Build.VERSION_CODES.M)
+    private void initLocationManager(){
         locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
         String provider = locationManager.getBestProvider(searchProviderCriteria, true);
 
@@ -81,22 +77,27 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         }
     }
 
+    private void initView(){
+        tvTemp = findViewById(R.id.tvTemp);
+        tvDesc = findViewById(R.id.tvDesc);
+        tvSunrise = findViewById(R.id.tvSunrise);
+        tvSunset = findViewById(R.id.tvSunset);
+        tvHumidity = findViewById(R.id.tvHumidity);
+        tvWindSpeed = findViewById(R.id.tvWindSpeed);
+        tvFeelTemp = findViewById(R.id.tvFeelTemp);
+        tvImage = findViewById(R.id.ivImage);
+    }
+
     public void showWeatherData(WeatherDay data) {
-        runOnUiThread(new Runnable() {
-
-            @Override
-            public void run() {
-
-                tvTemp.setText(data.getCity() + " " + data.getTempWithDegree());
-
-                tvDesc.setText(data.getWeatherDescription());
-                tvSunrise.setText("Восход в "+data.getSunrise());
-                tvSunset.setText("Закат в "+data.getSunset());
-                tvHumidity.setText("Влажность: "+data.getHumidityInteger());
-                tvWindSpeed.setText("Скорость ветра: "+data.getWindSpeedInteger());
-                tvFeelTemp.setText("Чувствуется: "+data.getFeelTempWithDegree());
-                Glide.with(MainActivity.this).asBitmap().load(data.getIconUrl()).into(tvImage);
-            }
+        runOnUiThread(() -> {
+            tvTemp.setText(data.getCity().concat(" ").concat(data.getTempWithDegree()));
+            tvDesc.setText(data.getWeatherDescription());
+            tvSunrise.setText("Восход в ".concat(data.getSunrise()));
+            tvSunset.setText("Закат в ".concat(data.getSunset()));
+            tvHumidity.setText("Влажность: ".concat(data.getHumidityInteger()));
+            tvWindSpeed.setText("Скорость ветра: ".concat(data.getWindSpeedInteger()));
+            tvFeelTemp.setText("Чувствуется: ".concat(data.getFeelTempWithDegree()));
+            Glide.with(MainActivity.this).asBitmap().load(data.getIconUrl()).into(tvImage);
         });
     }
 

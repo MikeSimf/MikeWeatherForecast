@@ -1,5 +1,6 @@
 package com.example.mikeweatherforecast;
 
+
 import retrofit2.Retrofit;
 import retrofit2.adapter.rxjava.RxJavaCallAdapterFactory;
 import retrofit2.converter.gson.GsonConverterFactory;
@@ -10,9 +11,8 @@ import rx.schedulers.Schedulers;
 
 public class WeatherAPI {
     public static String KEY = "211091242f97b25c31884f4c8fa8cd81";
-    public static final String BASE_URL = "https://api.openweathermap.org/data/2.5/";
-    private static Retrofit retrofit = null;
-    private static RxJavaCallAdapterFactory rxAdapter;
+    //public static final String BASE_URL = "https://api.openweathermap.org/data/2.5/";
+    //private static Retrofit retrofit;
 
     public interface ApiInterface {
         @GET("weather")
@@ -25,18 +25,14 @@ public class WeatherAPI {
         );
     }
 
-    public static Retrofit getClient() {
-        if(rxAdapter == null){
-            rxAdapter = RxJavaCallAdapterFactory.createWithScheduler(Schedulers.io());
-        }
-
+   /* public static Retrofit getClient() {
         if (retrofit == null) {
             retrofit = new Retrofit.Builder()
                     .baseUrl(BASE_URL)
                     .addConverterFactory(GsonConverterFactory.create())
-                    .addCallAdapterFactory(rxAdapter)
+                    .addCallAdapterFactory(RxJavaCallAdapterFactory.createWithScheduler(Schedulers.io()))
                     .build();
         }
         return retrofit;
-    }
+    }*/
 }
