@@ -23,6 +23,9 @@ import com.bumptech.glide.Glide;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
+import rx.Observable;
+import rx.Observer;
+import rx.SingleSubscriber;
 
 public class MainActivity extends AppCompatActivity implements LocationListener {
     private static final int INITIAL_REQUEST = 1337;
@@ -74,7 +77,18 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         }
     }
 
-    public void getWeather(View v) {
+    public void showWeatherData(WeatherDay data){
+        tvTemp.setText(data.getCity() + " " + data.getTempWithDegree());
+        Glide.with(MainActivity.this).load(data.getIconUrl()).into(tvImage);
+        tvDesc.setText(data.getWeatherDescription());
+        tvSunrise.setText("Восход в "+data.getSunrise());
+        tvSunset.setText("Закат в "+data.getSunset());
+        tvHumidity.setText("Влажность: "+data.getHumidityInteger());
+        tvWindSpeed.setText("Скорость ветра: "+data.getWindSpeedInteger());
+        tvFeelTemp.setText("Чувствуется: "+data.getFeelTempWithDegree());
+    }
+
+    public void getWeather() {
         if(location == null) {
             tvTemp.setText("Не удалось получить местоположение");
             return;
@@ -86,8 +100,26 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         String key = WeatherAPI.KEY;
         String lang = "ru";
 
-        Call<WeatherDay> callToday = api.getToday(lat, lng, units, lang, key);
-        callToday.enqueue(new Callback<WeatherDay>() {
+        //Call<WeatherDay> callToday = api.getToday(lat, lng, units, lang, key);
+
+        SingleSubscriber<WeatherDay> observer = new SingleSubscriber<WeatherDay>() {
+            @Override
+            public void onSuccess(WeatherDay data) {
+                showWeatherData(data);
+            }
+
+            @Override
+            public void onError(Throwable t) {
+                Log.e(TAG, "onFailure");
+                Log.e(TAG, t.toString());
+            }
+        };
+
+
+        api.getToday(lat, lng, units, lang, key).subscribe(observer);
+
+
+        /*callToday.enqueue(new Callback<WeatherDay>() {
             @Override
             public void onResponse(Call<WeatherDay> call, Response<WeatherDay> response) {
                 Log.e(TAG, "onResponse");
@@ -95,14 +127,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                 Log.d(TAG,response.toString());
 
                 if (response.isSuccessful()) {
-                    tvTemp.setText(data.getCity() + " " + data.getTempWithDegree());
-                    Glide.with(MainActivity.this).load(data.getIconUrl()).into(tvImage);
-                    tvDesc.setText(data.getWeatherDescription());
-                    tvSunrise.setText("Восход в "+data.getSunrise());
-                    tvSunset.setText("Закат в "+data.getSunset());
-                    tvHumidity.setText("Влажность: "+data.getHumidityInteger());
-                    tvWindSpeed.setText("Скорость ветра: "+data.getWindSpeedInteger());
-                    tvFeelTemp.setText("Чувствуется: "+data.getFeelTempWithDegree());
+                    showWeatherData(data);
                 }
             }
 
@@ -111,7 +136,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                 Log.e(TAG, "onFailure");
                 Log.e(TAG, t.toString());
             }
-        });
+        });*/
 
     }
 
