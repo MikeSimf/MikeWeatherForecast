@@ -7,6 +7,7 @@ import androidx.core.app.ActivityCompat;
 
 import android.Manifest;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
 import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationListener;
@@ -19,6 +20,9 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.target.Target;
+
+import java.util.concurrent.ExecutionException;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -77,18 +81,26 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         }
     }
 
-    public void showWeatherData(WeatherDay data){
-        tvTemp.setText(data.getCity() + " " + data.getTempWithDegree());
-        Glide.with(MainActivity.this).load(data.getIconUrl()).into(tvImage);
-        tvDesc.setText(data.getWeatherDescription());
-        tvSunrise.setText("Восход в "+data.getSunrise());
-        tvSunset.setText("Закат в "+data.getSunset());
-        tvHumidity.setText("Влажность: "+data.getHumidityInteger());
-        tvWindSpeed.setText("Скорость ветра: "+data.getWindSpeedInteger());
-        tvFeelTemp.setText("Чувствуется: "+data.getFeelTempWithDegree());
+    public void showWeatherData(WeatherDay data) {
+        runOnUiThread(new Runnable() {
+
+            @Override
+            public void run() {
+
+                tvTemp.setText(data.getCity() + " " + data.getTempWithDegree());
+
+                tvDesc.setText(data.getWeatherDescription());
+                tvSunrise.setText("Восход в "+data.getSunrise());
+                tvSunset.setText("Закат в "+data.getSunset());
+                tvHumidity.setText("Влажность: "+data.getHumidityInteger());
+                tvWindSpeed.setText("Скорость ветра: "+data.getWindSpeedInteger());
+                tvFeelTemp.setText("Чувствуется: "+data.getFeelTempWithDegree());
+                Glide.with(MainActivity.this).asBitmap().load(data.getIconUrl()).into(tvImage);
+            }
+        });
     }
 
-    public void getWeather() {
+    public void getWeather(View v) {
         if(location == null) {
             tvTemp.setText("Не удалось получить местоположение");
             return;
